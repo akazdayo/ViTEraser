@@ -1,0 +1,36 @@
+[project]
+name = "viteraser"
+version = "0.1.0"
+description = "Official implementation of ViTEraser and SegMIM"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "gradio>=6.0,<7",
+    "imageio==2.22.2",
+    "matplotlib==3.5.3",
+    "numpy==1.21.6",
+    "opencv-python-headless==4.6.0.66",
+    "pillow==9.2.0",
+    "pytorch-fid==0.3.0",
+    "scikit-image==0.19.3",
+    "scipy==1.7.3",
+    "timm==0.6.11",
+    "torch==2.7.1",
+    "torchaudio==2.7.1",
+    "torchvision==0.22.1",
+    "tqdm==4.64.1",
+]
+
+[tool.uv]
+package = false
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

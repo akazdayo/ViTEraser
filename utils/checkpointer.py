@@ -7,7 +7,7 @@ class Checkpointer(object):
         self.eval = eval 
 
     def load(self, checkpoint_path, model, discriminator=None, optimizer=None):
-        checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
 
         if self.distributed:
             model = model.module 

@@ -6,7 +6,7 @@ mkdir 'output'
 mkdir ${output_dir}
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 \
-python -m torch.distributed.launch \
+torchrun \
         --master_port=3150 \
         --nproc_per_node 4 \
         main.py \

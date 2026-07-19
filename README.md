@@ -13,15 +13,15 @@ Below are the frameworks of ViTEraser and SegMIM.
 - [x] SegMIM pre-training code
 
 ## Environment
-We recommend using [Anaconda](https://www.anaconda.com/) to manage environments. Run the following commands to install dependencies.
-```
-conda create -n viteraser python=3.7 -y
-conda activate viteraser
-pip install torch==1.8.2 torchvision==0.9.2 torchaudio==0.8.2 --extra-index-url https://download.pytorch.org/whl/lts/1.8/cu111
+We recommend using [uv](https://docs.astral.sh/uv/) to manage the Python environment and dependencies. Install uv, then run:
+
+```bash
 git clone https://github.com/shannanyinxiang/ViTEraser.git
 cd ViTEraser
-pip install -r requirements.txt
+uv sync
 ```
+
+`uv sync` installs the Python version pinned in `.python-version`, creates a local `.venv`, and installs the CUDA 12.8 build of PyTorch together with the other dependencies. This build supports NVIDIA Blackwell GPUs such as the GeForce RTX 50 series. Prefix Python commands with `uv run` to use this environment; activating the virtual environment is not required.
 
 ## Datasets 
 
@@ -33,12 +33,12 @@ pip install -r requirements.txt
   3. Generate text masks: 
   ```
     # Generating masks for the training set of SCUT-EnsText
-    python tools/generate_mask.py \
+    uv run python tools/generate_mask.py \
       --data_root data/TextErase/SCUT-EnsText/train    
 
     # Generating masks for the testing set of SCUT-EnsText
     # Masks are not used for inference. Just keep the same data structure as the training stage.
-    python tools/generate_mask.py \
+    uv run python tools/generate_mask.py \
       --data_root data/TextErase/SCUT-EnsText/test
   ```
 
@@ -88,32 +88,39 @@ The download links of pre-trained ViTEraser weights are provided in the followin
 
 ## Inference
 
-The example command for the inference with ViTEraser-Tiny is:
+Download a pretrained checkpoint from the [Models](#models) section, then remove text from a single image with:
+
+```bash
+uv run python inference.py \
+    --input path/to/input.jpg \
+    --checkpoint path/to/viteraser_tiny.pth \
+    --output output/result.png \
+    --model tiny
 ```
-CUDA_VISIBLE_DEVICES=0 \
-python -m torch.distributed.launch \
-        --master_port=3151 \
-        --nproc_per_node 1 \
-        --use_env \
-        main.py \
-        --eval \
-        --data_root data/TextErase/ \
-        --val_dataset scutens_test \
-        --batch_size 1 \
-        --encoder swinv2 \
-        --decoder swinv2 \
-        --pred_mask false \
-        --intermediate_erase false \
-        --swin_enc_embed_dim 96 \
-        --swin_enc_depths 2 2 6 2 \
-        --swin_enc_num_heads 3 6 12 24 \
-        --swin_enc_window_size 16 \
-        --swin_dec_depths 2 6 2 2 2 \
-        --swin_dec_num_heads 24 12 6 3 2 \
-        --swin_dec_window_size 16 \
-        --output_dir path/to/save/output/ \
-        --resume path/to/weights/
+
+To process every supported image in a directory recursively, pass directories instead:
+
+```bash
+uv run python inference.py \
+    --input path/to/input_images/ \
+    --checkpoint path/to/viteraser_tiny.pth \
+    --output output/results/ \
+    --model tiny
 ```
+
+The output is resized back to each image's original resolution. Use `--model small` or `--model base` with the corresponding checkpoint.
+
+### Gradio WebUI
+
+Launch the local WebUI with:
+
+```bash
+uv run python webui.py
+```
+
+Then open <http://127.0.0.1:7860>. High-quality tiled inference is enabled by default: it processes overlapping 512-pixel tiles without resizing the whole image, blends tile boundaries, and preserves pixels outside changed regions. The first inference loads the checkpoint into GPU memory; subsequent runs reuse the loaded model. To access it from another machine on the network, run `uv run python webui.py --host 0.0.0.0`.
+
+The command-line interface uses the same high-quality tiled mode by default. Add `--fast` to use the previous whole-image resize mode when speed matters more than preserving fine details.
 
 Argument changes for different scales of ViTEraser are as below:
 
@@ -131,11 +138,11 @@ Argument changes for different scales of ViTEraser are as below:
 
 The command for calculating metrics is:
 ```
-python eval/evaluation.py \
+uv run python eval/evaluation.py \
     --gt_path data/TextErase/SCUT-EnsText/test/label/ \
     --target_path path/to/model/output/
 
-python -m pytorch_fid \
+uv run python -m pytorch_fid \
     data/TextErase/SCUT-EnsText/test/label/ \
     path/to/model/output/ \
     --device cuda:0
@@ -151,7 +158,7 @@ python -m pytorch_fid \
 - Run the example scripts in the `scripts/viteraser-training-wosegmim` folder.
 For instance, run the following command to train ViTEraser-Tiny without SegMIM pretraining.
 ```
-bash scripts/viteraser-training-wosegmim/viteraser-tiny-train.sh
+uv run bash scripts/viteraser-training-wosegmim/viteraser-tiny-train.sh
 ```
 
 ### 2. Training with SegMIM pretraining
@@ -162,7 +169,7 @@ bash scripts/viteraser-training-wosegmim/viteraser-tiny-train.sh
 - Run the example scripts in the `scripts/viteraser-training-withsegmim` folder.
 For instance, run the following command to train ViTEraser-Tiny with SegMIM pretraining.
 ```
-bash scripts/viteraser-training-withsegmim/viteraser-tiny-train-withsegmim.sh
+uv run bash scripts/viteraser-training-withsegmim/viteraser-tiny-train-withsegmim.sh
 ```
 
 ## SegMIM Pretraining
@@ -171,10 +178,10 @@ bash scripts/viteraser-training-withsegmim/viteraser-tiny-train-withsegmim.sh
 For instance, run the following command to perform SegMIM pretraining of ViTEraser-Tiny.
 ```
 # end-to-end encoder-decoder pretraining
-bash scripts/segmim/viteraser-tiny-segmim.sh
+uv run bash scripts/segmim/viteraser-tiny-segmim.sh
 
 # standalone encoder finetuning
-bash scripts/segmim/viteraser-tiny-encoder-finetune.sh
+uv run bash scripts/segmim/viteraser-tiny-encoder-finetune.sh
 ```
 
 ## Citation

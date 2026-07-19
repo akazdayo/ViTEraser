@@ -6,7 +6,7 @@ class VGG16(nn.Module):
     def __init__(self, pretrained_path):
         super(VGG16, self).__init__()
         vgg16 = torchvision.models.vgg16()
-        vgg16.load_state_dict(torch.load(pretrained_path))
+        vgg16.load_state_dict(torch.load(pretrained_path, weights_only=False))
 
         self.enc_1 = nn.Sequential(*vgg16.features[:5])
         self.enc_2 = nn.Sequential(*vgg16.features[5:10])

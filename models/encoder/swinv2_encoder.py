@@ -41,7 +41,7 @@ class SwinV2Encoder(nn.Module):
 
     def load_pretrained_weights(self, pth_path):
         model_dict = self.backbone.state_dict()
-        pth_dict = torch.load(pth_path, map_location='cpu')
+        pth_dict = torch.load(pth_path, map_location='cpu', weights_only=False)
         if 'model' in pth_dict:
             pth_dict = pth_dict['model']
 

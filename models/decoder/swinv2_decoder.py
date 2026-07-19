@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
 
-from collections import Iterable
+from collections.abc import Iterable
 from timm.models.layers import trunc_normal_
 
 from models.block import build_lateral_connection, ConvWithActivation
@@ -113,7 +113,7 @@ class BasicLayer(nn.Module):
         for blk in self.blocks:
             blk.H, blk.W = H, W
             if self.use_checkpoint:
-                x = checkpoint.checkpoint(blk, x, attn_mask)
+                x = checkpoint.checkpoint(blk, x, attn_mask, use_reentrant=False)
             else:
                 x = blk(x, attn_mask)
 
@@ -356,7 +356,7 @@ def build_swin_v2_decoder(args):
 
 def load_pretrained_decoder(decoder, pth_path):
     decoder_dict = decoder.state_dict()
-    pth_dict = torch.load(pth_path, map_location='cpu')
+    pth_dict = torch.load(pth_path, map_location='cpu', weights_only=False)
     if 'model' in pth_dict:
         pth_dict = pth_dict['model']
 

@@ -58,7 +58,7 @@ class MLP(nn.Module):
 
 
 def load_pretrained_model(model, weight_path, ignore_encoder=False):
-    weight = torch.load(weight_path, map_location='cpu')['model']
+    weight = torch.load(weight_path, map_location='cpu', weights_only=False)['model']
     model_dict = model.state_dict()
 
     loaded_keys = []
@@ -81,8 +81,7 @@ def load_pretrained_model(model, weight_path, ignore_encoder=False):
         
     model.load_state_dict(model_dict)
     print(f'Load Model from {weight_path}')
-    print('Loaded keys:', loaded_keys)
-    print('Ignored keys:', ignore_keys)
+    print(f'Loaded {len(loaded_keys)} tensors; ignored {len(ignore_keys)} position buffers')
     return model
 
 

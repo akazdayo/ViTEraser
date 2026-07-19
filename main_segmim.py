@@ -51,7 +51,11 @@ def main(args):
     lr_scheduler = get_lr_schedule(args, optimizer, len(train_dataloader))
 
     if args.segmim_finetune and args.segmim_ft_init_weight_path != '':
-        segmim_ft_init_weight = torch.load(args.segmim_ft_init_weight_path, map_location='cpu')
+        segmim_ft_init_weight = torch.load(
+            args.segmim_ft_init_weight_path,
+            map_location='cpu',
+            weights_only=False,
+        )
         if args.distributed:
             model.module.load_state_dict(segmim_ft_init_weight['model'], strict=False)
         else:
